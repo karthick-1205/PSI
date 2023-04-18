@@ -38,9 +38,21 @@ public class Token {
    // Utility function used to echo an error to the console
    public void PrintError () {
       if (Kind != ERROR) throw new Exception ("PrintError called on a non-error token");
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine ($"At line {Line}, column {Column} of {Source.FileName}: {Text}");
-      Console.ResetColor ();
+      Console.WriteLine ($"File: {Source.FileName}");
+      for(int i=0; i<4; i++)
+          Console.Write("\u2500\u2500\u2500\u2500\u2500");
+      Console.WriteLine ();
+
+      for (int i = Line - 3; i < Line+2; i++) {
+         Console.WriteLine ($"{i+1}{Source.Lines[i]}");
+         if (Source.Lines[i] == Source.Lines[Line-1]) {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.CursorLeft = (Console.WindowWidth / 4) - 8;
+            Console.WriteLine ("^");
+            Console.WriteLine ($"            {Text}");
+            Console.ResetColor ();
+         }
+      }
    }
 
    // Helper used by the parser (maps operator sequences to E values)
