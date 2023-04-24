@@ -82,6 +82,68 @@ public class PSIPrint : Visitor<StringBuilder> {
       S.Append (txt);
       return S;
    }
+   public override StringBuilder Visit (NFnDecl d) {
+      throw new NotImplementedException ();
+   }
+
+   public override StringBuilder Visit (NProcFnDecl d) {
+      throw new NotImplementedException ();
+   }
+
+   public override StringBuilder Visit (NReadStmt r) {
+      NWrite ("read (");
+      for (int i = 0; i < r.List.Length; i++) {
+         if (i > 0) Write (", ");
+         Write (r.List[i].Text);
+      }
+      return Write (");");
+   }
+
+   public override StringBuilder Visit (NCallStmt r) {
+      throw new NotImplementedException ();
+   }
+
+   public override StringBuilder Visit (NWhileStmt r) {
+      NWrite ("while"); N++;
+      r.Expr.Accept (this);
+      Write(" do"); 
+      return Visit (r.Stmts);
+   }
+
+   public override StringBuilder Visit (NIfStmt f) {
+      NWrite ("if"); 
+      f.Expr.Accept (this);
+      Write (" then");
+      N++;
+      if(f.Stmts.Length>=1) {
+         Visit (f.Stmts[0]);
+         N--;
+      }
+      if(f.Stmts.Length==2) { 
+         NWrite ("else"); N++; 
+         Visit (f.Stmts[1]); 
+         N--;
+      }
+      return S;
+
+   }
+
+   public override StringBuilder Visit (NRepeatStmt r) {
+      NWrite ("repeat");
+      for (int i = 0; i < r.Stmts.Length; i++) {
+         if (i > 0) Write (" "); N++;
+         r.Stmts[i].Accept (this);
+         N--;
+      }
+      NWrite("until");
+      Visit(r.Expr);
+      return Write(";");
+
+   }
+
+   public override StringBuilder Visit (NForStmt r) {
+      throw new NotImplementedException ();
+   }
 
    readonly StringBuilder S = new ();
 }

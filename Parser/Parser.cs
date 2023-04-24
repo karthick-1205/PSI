@@ -4,6 +4,8 @@
 namespace PSI;
 using static Token.E;
 using static NType;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 public class Parser {
    // Interface -------------------------------------------
@@ -34,7 +36,9 @@ public class Parser {
       if (Match (VAR)) 
          do { vars.AddRange (VarDecls ()); Expect (SEMI); } while (Peek (IDENT));
       return new (vars.ToArray ());
+
    }
+
 
    // ident-list = IDENT { "," IDENT }
    Token[] IdentList () {
@@ -47,6 +51,35 @@ public class Parser {
    NVarDecl[] VarDecls () {
       var names = IdentList (); Expect (COLON); var type = Type ();
       return names.Select (a => new NVarDecl (a, type)).ToArray ();
+   }
+
+   // paramlist =  "(" var-decl { "," var-decl } ")"
+   NVarDecl[] ParamList () {
+      Expect (OPEN);
+      NVarDecl[] nVarDecls = VarDecls ();
+      Expect (CLOSE);
+      return nVarDecls;
+   }
+   //proc-decl =  "procedure" IDENT paramlist block ";" .
+   NProcFnDecl ProcDecls () {
+     Expect(PROCEDURE);
+     var name=Expect (IDENT);
+     NVarDecl[] param = ParamList ();
+     var block= Block ();
+     Expect (SEMI);
+     return new NProcFnDecl (name,param,block);
+   }
+
+   // func-decl  =  "function" IDENT paramlist ":" type block ";" .
+   NFnDecl FuncDecls () {
+      Expect (FUNCTION);
+      var name = Expect (IDENT);
+      NVarDecl[] param = ParamList ();
+      Expect (COLON);
+      var type = Type ();
+      var block = Block ();
+      Expect (SEMI);
+      return new NFnDecl (name, param, type, block);
    }
 
    // type = integer | real | boolean | string | char
@@ -68,6 +101,11 @@ public class Parser {
       if (Match (IDENT)) {
          if (Match (ASSIGN)) return AssignStmt ();
       }
+      if (Match (READ)) return ReadStmt ();
+      if(Match(WHILE)) return WhileStmt ();
+      if(Match(IF)) return IfStmt ();
+      if(Match (REPEAT)) return RepeatStmt ();
+      if (Peek (BEGIN)) { var comp_stmt = CompoundStmt (); Expect(SEMI); return comp_stmt; } 
       Unexpected ();
       return null!;
    }
@@ -84,10 +122,72 @@ public class Parser {
    NWriteStmt WriteStmt () 
       => new (Prev.Kind == WRITELN, ArgList ());
 
+   //read-stmt=  "read" "(" identlist ")"
+   NReadStmt ReadStmt () { 
+      Expect (OPEN);
+      var r = IdentList ();
+      Expect (CLOSE);
+      return new NReadStmt(r);
+   }
+
    // assign-stmt = IDENT ":=" expr .
    NAssignStmt AssignStmt () 
       => new (PrevPrev, Expression ());
    #endregion
+
+   //call-stmt =  IDENT arglist .
+   NCallStmt CallStmt () {
+      var name = Expect(IDENT);
+      NExpr[] c = ArgList ();
+      return new (name, c);
+   }
+
+   //while-stmt = "while" expression "do" statement .
+   NWhileStmt WhileStmt () {
+      List<NStmt> stmts = new ();
+      var expr = Expression ();
+      Expect(DO);
+      while (!Peek (END)) { stmts.Add (Stmt ()); Match (SEMI); }
+      return new (expr,stmts.ToArray());
+   }
+
+   // if-stmt =  "if" expression "then" statement [ "else" statement ] .
+   NIfStmt IfStmt () {
+      List<NStmt> stmts = new ();
+      var expr = Expression ();
+      Expect (THEN);
+      { stmts.Add (Stmt ()); Match (SEMI); }
+      if(Match(ELSE))
+      { stmts.Add (Stmt ()); Match (SEMI); }
+      return new (expr, stmts.ToArray ());
+
+   }
+
+   // repeat-stmt=  "repeat" statement { ";" statement } "until" expression .
+   NRepeatStmt RepeatStmt() {
+      List<NStmt> stmts = new ();
+      while (!Peek (UNTIL)) { stmts.Add (Stmt ()); Match (SEMI); }
+      Expect(UNTIL);
+      var expr = Expression ();
+      return new (stmts.ToArray(),expr);
+   }
+
+   //for-stmt=  "for" IDENT ":=" expression ( "to" | "downto" ) expression "do" statement .
+   NForStmt ForStmt () {
+      Expect (FOR);
+      var name = Expect (IDENT);
+      Expect (COLON);
+      Expect (EQ);
+      var expr=Expression ();
+      Expect (TO);
+      var expr1 = Expression ();
+      Expect (DO);
+      List<NStmt> stmts = new ();
+      while (!Match (END)) { stmts.Add (Stmt ()); Match (SEMI); }
+      return new (stmts.ToArray (), expr1);
+
+   }
+
 
    #region Expression --------------------------------------
    // expression = equality .

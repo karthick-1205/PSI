@@ -30,6 +30,14 @@ public record NVarDecl (Token Name, NType Type) : Node {
 }
 #endregion
 
+public record NProcFnDecl (Token Name, NVarDecl[] Exprs,NBlock block) : Node {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
+
+public record NFnDecl(Token Name, NVarDecl[] Exprs, NType Type, NBlock block) : Node {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
+
 #region Statements -------------------------------------------------------------
 // Base class for various types of statements
 public abstract record NStmt : Node { }
@@ -43,13 +51,39 @@ public record NCompoundStmt (NStmt[] Stmts) : NStmt {
 public record NWriteStmt (bool NewLine, NExpr[] Exprs) : NStmt {
    public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
 }
-
+// An Read statement
+public record NReadStmt (Token[] List) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
 // An assignment statement
 public record NAssignStmt (Token Name, NExpr Expr) : NStmt {
    public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
 }
 #endregion
+// An call statement
+public record NCallStmt (Token Name, NExpr[] Exprs) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
 
+// An while statement
+public record NWhileStmt (NExpr Expr, NStmt[] Stmts) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
+
+// An if statement
+public record NIfStmt (NExpr Expr, NStmt[] Stmts) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
+
+// An repeat statement
+public record NRepeatStmt (NStmt[] Stmts,NExpr Expr) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
+
+// An for statement
+public record NForStmt (NStmt[] Stmts, NExpr Expr) : NStmt {
+   public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
+}
 #region Expression nodes -------------------------------------------------------
 // Base class for expression nodes
 public abstract record NExpr : Node {
