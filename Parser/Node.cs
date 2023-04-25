@@ -81,7 +81,7 @@ public record NRepeatStmt (NStmt[] Stmts,NExpr Expr) : NStmt {
 }
 
 // An for statement
-public record NForStmt (NStmt[] Stmts, NExpr Expr) : NStmt {
+public record NForStmt (Token Name,NExpr Expr,bool a,NExpr Expr1,NStmt Stmts) : NStmt {
    public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
 }
 #region Expression nodes -------------------------------------------------------

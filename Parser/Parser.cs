@@ -100,11 +100,13 @@ public class Parser {
       if (Match (WRITE, WRITELN)) return WriteStmt ();
       if (Match (IDENT)) {
          if (Match (ASSIGN)) return AssignStmt ();
+         else return CallStmt ();
       }
       if (Match (READ)) return ReadStmt ();
       if(Match(WHILE)) return WhileStmt ();
       if(Match(IF)) return IfStmt ();
       if(Match (REPEAT)) return RepeatStmt ();
+      if(Match(FOR)) return ForStmt ();
       if (Peek (BEGIN)) { var comp_stmt = CompoundStmt (); Expect(SEMI); return comp_stmt; } 
       Unexpected ();
       return null!;
@@ -174,18 +176,14 @@ public class Parser {
 
    //for-stmt=  "for" IDENT ":=" expression ( "to" | "downto" ) expression "do" statement .
    NForStmt ForStmt () {
-      Expect (FOR);
-      var name = Expect (IDENT);
-      Expect (COLON);
-      Expect (EQ);
+      var name=Expect (IDENT);
+      Expect (ASSIGN);
       var expr=Expression ();
-      Expect (TO);
+      bool a =Match(TO);
       var expr1 = Expression ();
       Expect (DO);
-      List<NStmt> stmts = new ();
-      while (!Match (END)) { stmts.Add (Stmt ()); Match (SEMI); }
-      return new (stmts.ToArray (), expr1);
-
+      var stmts = Stmt ();
+      return new (name,expr,a,expr1,stmts);
    }
 
 

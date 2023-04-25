@@ -142,7 +142,16 @@ public class PSIPrint : Visitor<StringBuilder> {
    }
 
    public override StringBuilder Visit (NForStmt r) {
-      throw new NotImplementedException ();
+      NWrite ("for ");
+      Write (r.Name.Text);
+      Write(" := ");
+      Visit (r.Expr);
+      Write (r.a? " to " : " downto ");
+      Visit (r.Expr1);
+      Write (" do"); N++;
+      Visit (r.Stmts); N--;
+      return S;
+
    }
 
    readonly StringBuilder S = new ();
