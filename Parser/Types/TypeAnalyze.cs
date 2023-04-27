@@ -140,7 +140,10 @@ public class TypeAnalyze : Visitor<NType> {
    }
 
    public override NType Visit (NFnCall f) {
-      throw new NotImplementedException ();
+      if (mSymbols.Find (f.Name.Text) is NFnDecl v)
+         return f.Type = v.Return;
+      return Visit(f.Params);
+      //throw new NotImplementedException ();
    }
 
    public override NType Visit (NTypeCast c) {
@@ -151,5 +154,9 @@ public class TypeAnalyze : Visitor<NType> {
    NType Visit (IEnumerable<Node> nodes) {
       foreach (var node in nodes) node.Accept (this);
       return NType.Void;
+   }
+
+   public override NType Visit (NConstDecl c) {
+      throw new NotImplementedException ();
    }
 }
