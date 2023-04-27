@@ -150,6 +150,10 @@ public class PSIPrint : Visitor<StringBuilder> {
       S.Append (txt);
       return S;
    }
+   public override StringBuilder Visit (NConstDecl c) {
+      Write ("const");N++;
+      return NWrite ($"{c.Name.Text} = {c.Value}");
+   }
 
    readonly StringBuilder S = new ();
 }
