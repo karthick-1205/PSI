@@ -27,6 +27,9 @@ public class TypeAnalyze : Visitor<NType> {
    }
 
    public override NType Visit (NVarDecl d) {
+      if (mSymbols.Find (d.Name.Text) is NVarDecl) throw new ParseException (d.Name, "Same variable name cannot be used for another variable");
+      if (mSymbols.Find (d.Name.Text) is NConstDecl) throw new ParseException (d.Name, "Same variable name cannot be used for another constant variable");
+      if (mSymbols.Find (d.Name.Text) is NFnDecl) throw new ParseException (d.Name, "Same variable name cannot be used for another function name");
       mSymbols.Vars.Add (d);
       return d.Type;
    }
@@ -37,11 +40,13 @@ public class TypeAnalyze : Visitor<NType> {
    }
    #endregion
 
-   #region Statements --------------------------------------
+   #region Statements --------------------------------------  
    public override NType Visit (NCompoundStmt b)
       => Visit (b.Stmts);
 
    public override NType Visit (NAssignStmt a) {
+      if (mSymbols.Find (a.Name.Text) is  NConstDecl)
+         throw new ParseException (a.Name, "constant variable cannot be assigned");
       if (mSymbols.Find (a.Name.Text) is not NVarDecl v)
          throw new ParseException (a.Name, "Unknown variable");
       a.Expr.Accept (this);
@@ -136,14 +141,22 @@ public class TypeAnalyze : Visitor<NType> {
    public override NType Visit (NIdentifier d) {
       if (mSymbols.Find (d.Name.Text) is NVarDecl v) 
          return d.Type = v.Type;
+      if (mSymbols.Find (d.Name.Text) is NConstDecl c)
+         return d.Type = c.Type;
       throw new ParseException (d.Name, "Unknown variable");
    }
 
    public override NType Visit (NFnCall f) {
-      if (mSymbols.Find (f.Name.Text) is NFnDecl v)
-         return f.Type = v.Return;
-      return Visit(f.Params);
-      //throw new NotImplementedException ();
+      if (mSymbols.Find (f.Name.Text) is NFnDecl g) {
+         if (f.Params.Length != g.Params.Length) throw new ParseException (f.Name, "Parameters length is not equal");
+         Visit (f.Params);
+         for (int i = 0; i < g.Params.Length; i++) {
+            f.Params[i] = AddTypeCast (f.Name, f.Params[i], f.Type);
+            if (f.Params[i].Type != g.Params[i].Type) throw new ParseException (f.Name, "Parameter type doesn't match");
+         }
+         return f.Type = g.Return;
+      }
+      throw new ParseException (f.Name, "Unknown function"); 
    }
 
    public override NType Visit (NTypeCast c) {
@@ -157,6 +170,10 @@ public class TypeAnalyze : Visitor<NType> {
    }
 
    public override NType Visit (NConstDecl c) {
-      throw new NotImplementedException ();
+      if (mSymbols.Find (c.Name.Text) is NConstDecl) throw new ParseException (c.Name, "Same constant variable name cannot be used for another constant variable");
+      if (mSymbols.Find (c.Name.Text) is NFnDecl) throw new ParseException (c.Name, "Same constant variable name cannot be used for another function name");
+      mSymbols.Consts.Add (c);
+      return c.Type;
    }
+  
 }

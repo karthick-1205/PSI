@@ -36,7 +36,8 @@ public record NFnDecl (Token Name, NVarDecl[] Params, NType Return, NBlock? Body
    public override string ToString () => $"{Return} {Name} ({Params.ToCSV ()})";
 }
 
-public record NConstDecl (Token Name,Token Value) : Node {
+public record NConstDecl (Token Name,NLiteral Value) : Node {
+   public NType Type { get; set; }
    public override T Accept<T> (Visitor<T> visitor) => visitor.Visit (this);
 }
 #endregion

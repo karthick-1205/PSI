@@ -68,7 +68,7 @@ public class Parser {
          var name = Expect (IDENT);
          Expect (EQ);
          var val = mToken;
-         if (Match (mToken.Kind) && Match (SEMI)) { vars.Add (new NConstDecl (name, val)); } 
+         if (Match (mToken.Kind) && Match (SEMI)) { vars.Add (new NConstDecl (name, new NLiteral(val))); } 
          else { mToken = Prev; Expect (SEMI); }
       }
       return vars.ToArray();
@@ -256,7 +256,7 @@ public class Parser {
    bool Match (params Token.E[] kinds) {
       if (kinds.Contains (mToken.Kind)) {
          mPrevPrev = mPrevious; mPrevious = mToken; 
-         mToken = mTokenizer.Next ();
+          mToken = mTokenizer.Next ();
          return true;
       }
       return false;
