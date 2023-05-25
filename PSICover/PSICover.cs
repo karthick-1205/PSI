@@ -1,5 +1,6 @@
 ﻿namespace PSICover;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 // The CoverageAnalyzer for .Net
@@ -189,7 +190,6 @@ class Analyzer {
          File.WriteAllText (htmlfile, html);
          summaryList.Add ((file, hitCount, blocks.Count - hitCount, Math.Round (100.0 * hitCount / blocks.Count, 1)));
          Summary (summaryList);
-
       }
       int cBlocks = mBlocks.Count, cHit = hits.Count (a => a > 0);
       double percent = Math.Round (100.0 * cHit / cBlocks, 1);
@@ -197,9 +197,9 @@ class Analyzer {
    }
 
    void Summary (List<(string filename, int hit, int unhit, double percent)> summary) {
-      string data = "";
+      StringBuilder s = new ();
       foreach (var result in summary.OrderBy (s => s.percent)) {
-         data += $"""
+        var data = $"""
             <tr>
                <td>{result.filename}</td>
                <td>{result.hit}</td>
@@ -207,6 +207,7 @@ class Analyzer {
                <td>{result.percent}%</td>
             </tr>
             """;
+         s.Append (data);
       }
       string html = $$"""
             <html><head><style>
@@ -228,7 +229,7 @@ class Analyzer {
                 background-color: #f2f2d1;
             }
             </style></head>
-            <body><pre>
+            <body>
             <table id="t01">
             <tr>
             	<th>FileName</th>
@@ -236,8 +237,8 @@ class Analyzer {
             	<th>UnHit</th>
                <th>Coverage</th>
             </tr>
-            {{data}}
-            </pre></body></html>
+            {{s}}
+            </body></html>
             """;
       string htmlfile = $"{Dir}/HTML/Summary.html";
       File.WriteAllText (htmlfile, html);
