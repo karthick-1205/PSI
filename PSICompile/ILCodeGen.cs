@@ -144,10 +144,10 @@ public class ILCodeGen : Visitor {
             "mod" => "rem",
             "eq" => "ceq",
             "lt" => "clt",
-            "geq" => "clt ldc.i4.0 ceq",
-            "leq" => "cgt ldc.i4.0 ceq",
+            "geq" => "clt\n ldc.i4.0\n ceq",
+            "leq" => "cgt\n ldc.i4.0\n ceq",
             "gt" => "cgt",
-            "neq" => "ceq ldc.i4.0 ceq",
+            "neq" => "ceq\n ldc.i4.0\n ceq",
             _ => op
          };
          Out ($"    {op}");
