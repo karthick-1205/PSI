@@ -68,20 +68,13 @@ public class ILCodeGen : Visitor {
    }
 
    public override void Visit (NIfStmt f) {
-      string lab1 = NextLabel (), lab2 = NextLabel (), lab3 = NextLabel (), lab4 = NextLabel ();
-      Out ($"  {lab1}:");
+      string lab1 = NextLabel (), lab2 = NextLabel ();
       f.Condition.Accept (this);
-      if (f.IfPart != null) {
-         Out ($"    brfalse {lab3}");
-         Out ($"  {lab2}:");
-         f.IfPart.Accept (this);
-         Out ($"    br {lab4}");
-      } else {
-         Out ($"    brfalse {lab4}");
-      }
-      Out ($"  {lab3}:");
+      Out ($"    brfalse {lab2}");
+      Out ($"    {lab1}:");
+      f.IfPart.Accept (this);
+      Out ($"  {lab2}:");
       f.ElsePart?.Accept (this);
-      Out ($"  {lab4}:");
    }
 
    public override void Visit (NForStmt f) => throw new NotImplementedException ();
@@ -147,7 +140,16 @@ public class ILCodeGen : Visitor {
          Out ("    call string [System.Runtime]System.String::Concat (string, string)");
       else {
          string op = b.Op.Kind.ToString ().ToLower ();
-         op = op switch { "mod" => "rem", "eq" => "ceq", "lt" => "clt", "geq" => "clt ldc.i4.0 ceq", "leq" => "cgt ldc.i4.0 ceq", "gt" => "cgt", "neq" => "ceq ldc.i4.0 ceq", _ => op };
+         op = op switch {
+            "mod" => "rem",
+            "eq" => "ceq",
+            "lt" => "clt",
+            "geq" => "clt ldc.i4.0 ceq",
+            "leq" => "cgt ldc.i4.0 ceq",
+            "gt" => "cgt",
+            "neq" => "ceq ldc.i4.0 ceq",
+            _ => op
+         };
          Out ($"    {op}");
       }
    }
