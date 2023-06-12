@@ -99,7 +99,7 @@ public class Parser {
       if (Match (IF)) return IfStmt ();
       if (Match (FOR)) return ForStmt ();
       if (Peek (BEGIN)) return CompoundStmt ();
-      if (Match (READ)) return ReadStmt ();
+      if (Match (READ, READLN)) return ReadStmt ();
       if (Match (WHILE)) return WhileStmt ();
       if (Match (REPEAT)) return RepeatStmt ();
       Unexpected ();
@@ -140,7 +140,7 @@ public class Parser {
       if (!Peek (CLOSE)) names.Add (Expect (IDENT));
       while (Match (COMMA)) names.Add (Expect (IDENT));
       Expect (CLOSE); Expect (SEMI);
-      return new (names.ToArray ());
+      return new (Prev.Kind == READLN, names.ToArray ());
    }
 
    // while-stmt = "while" condition "do" statement ";" .
